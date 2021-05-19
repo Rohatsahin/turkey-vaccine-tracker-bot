@@ -1,0 +1,80 @@
+const cheerio = require('cheerio');
+const axios = require('axios');
+const fetch = require('node-fetch');
+
+const covidDataSourceUrl = 'http://covid19asi.saglik.gov.tr';
+const totalPopulationInTurkey = 82000000;
+
+function getCovidReportHtmlContent(html) {
+    const content = cheerio.load(html);
+
+    return content('g')
+        .slice(1)
+        .map((index, element) => {
+            if (element && content(element).attr()) {
+                return {
+                    city: content(element).attr('data-adi'),
+                    singleDoze: Number(content(element).attr('data-birinci-doz').split('.').join('')),
+                    twoDozes: Number(content(element).attr('data-ikinci-doz').split('.').join('')),
+                };
+            }
+        }).get();
+}
+
+function calculateSingleDozePercentage(data) {
+    const totalCasualty = data.map(it => it.singleDoze).reduce((x, y) => x + y, 0);
+
+    return Number((totalCasualty / totalPopulationInTurkey) * 100).toFixed(2);
+}
+
+function calculateTwoDozesPercentage(data) {
+    const totalCasualty = data.map(it => it.twoDozes).reduce((x, y) => x + y, 0);
+
+    return Number((totalCasualty / totalPopulationInTurkey) * 100).toFixed(2);
+}
+
+async function sendMessage2Twitter(singleDose, twoDozes) {
+    let message = "Percentage%20of%20Vaccinated%20by%20Population%20%0AProgress%20Bar:%20%20";
+    const formattedPercentage = Math.round(twoDozes / 10);
+
+    for (let idx = 1; idx < 11; idx++) {
+        if (formattedPercentage >= idx) {
+            message = message + "X";
+        } else {
+            message = message + "-";
+        }
+    }
+
+    message = message + "%0ASingleDoze%20Percentage:%20%20" + singleDose;
+    message = message + "%0ATwoDozes%20Percentage:%20%20" + twoDozes;
+    message = message + "%0APercentage%20of%20Effective%20Immunity:%20%20" + twoDozes + "%0A%23covid19%20%23covid";
+
+    const opts = {
+        "headers": {
+            // your auth headers
+        },
+        "body": `status=${message}`,
+        "method": "POST",
+    };
+
+    await fetch("https://api.twitter.com/1.1/statuses/update.json", opts);
+    return message;
+}
+
+exports.handler = async function (event, context, callback) {
+    try {
+        console.log("Reading options from event:\n", event);
+        const response = await axios.get(covidDataSourceUrl, {responseType: 'text'});
+
+        const covidReport = getCovidReportHtmlContent(response.data);
+        const calculateTotalSingleDozePercentage = calculateSingleDozePercentage(covidReport);
+        const calculateTotalTwoDozesPercentage = calculateTwoDozesPercentage(covidReport);
+
+        const message = await sendMessage2Twitter(calculateTotalSingleDozePercentage, calculateTotalTwoDozesPercentage);
+        console.log(`daily covid computation success totalCasualtyPercentage: ${calculateTotalTwoDozesPercentage} ,message to twitter: ${message}`);
+    } catch (err) {
+        console.error(`error getting :(  ${err.name} ${err.message} ${err.stack}`);
+    }
+
+    callback(null, 'completion success');
+};

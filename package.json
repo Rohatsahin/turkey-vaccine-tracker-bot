@@ -1,0 +1,21 @@
+{
+  "name": "covid-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "locally": "node -e \"console.log(require('./src/index.js').handler({}));\""
+  },
+  "keywords": [],
+  "author": "rohat.sahin",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "cheerio": "^1.0.0-rc.3",
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.2"
+  }
+}
