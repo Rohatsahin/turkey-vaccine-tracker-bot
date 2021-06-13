@@ -34,7 +34,7 @@ function calculateTwoDozesPercentage(data) {
 }
 
 async function sendMessage2Twitter(singleDose, twoDozes) {
-    let message = "Percentage%20of%20Vaccinated%20by%20Population%20%0AProgress%20Bar:%20%20";
+    let message = "Percentage%20of%20Population%20Vaccinated%20%0AProgress%20Bar:%20%20";
     const formattedPercentage = Math.round(twoDozes / 10);
 
     for (let idx = 1; idx < 11; idx++) {
@@ -45,8 +45,8 @@ async function sendMessage2Twitter(singleDose, twoDozes) {
         }
     }
 
-    message = message + "%0ASingleDoze%20Percentage:%20%20" + singleDose;
-    message = message + "%0ATwoDozes%20Percentage:%20%20" + twoDozes;
+    message = message + "%0ASingleDose%20Percentage:%20%20" + singleDose;
+    message = message + "%0ATwoDoses%20Percentage:%20%20" + twoDozes;
     message = message + "%0APercentage%20of%20Effective%20Immunity:%20%20" + twoDozes + "%0A%23covid19%20%23covid";
 
     const opts = {
