@@ -8,17 +8,11 @@ const totalPopulationInTurkey = 82000000;
 function getCovidReportHtmlContent(html) {
     const content = cheerio.load(html);
 
-    return content('g')
-        .slice(1)
-        .map((index, element) => {
-            if (element && content(element).attr()) {
-                return {
-                    city: content(element).attr('data-adi'),
-                    singleDoze: Number(content(element).attr('data-birinci-doz').split('.').join('')),
-                    twoDozes: Number(content(element).attr('data-ikinci-doz').split('.').join('')),
-                };
-            }
-        }).get();
+  return {
+        "singleDoze": Number((content('script')[13].children[0].data.match(/var asiyapilankisisayisi1Doz = (.*);/)[1]).replace("'", "").replace("'", "").split(".").join("")),
+        "twoDozes": Number((content('script')[14].children[0].data.match(/var asiyapilankisisayisi2Doz = (.*);/)[1]).replace("'", "").replace("'", "").split(".").join("")),
+        "threeDozes": Number((content('script')[15].children[0].data.match(/var asiyapilankisisayisi3Doz = (.*);/)[1]).replace("'", "").replace("'", "").split(".").join(""))
+    };
 }
 
 function calculateSingleDozePercentage(data) {
