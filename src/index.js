@@ -9,9 +9,9 @@ function getCovidReportHtmlContent(html) {
     const content = cheerio.load(html);
 
   return {
-        "singleDoze": Number((content('script')[13].children[0].data.match(/var asiyapilankisisayisi1Doz = (.*);/)[1]).replace("'", "").replace("'", "").split(".").join("")),
-        "twoDozes": Number((content('script')[14].children[0].data.match(/var asiyapilankisisayisi2Doz = (.*);/)[1]).replace("'", "").replace("'", "").split(".").join("")),
-        "threeDozes": Number((content('script')[15].children[0].data.match(/var asiyapilankisisayisi3Doz = (.*);/)[1]).replace("'", "").replace("'", "").split(".").join(""))
+        "singleDoze": Number((content('script')[8].children[0].data.match(/var doz1asisayisi = (.*);/)[1]).replace("'", "").replace("'", "").split(".").join("")),
+        "twoDozes": Number((content('script')[8].children[0].data.match(/var doz2asisayisi = (.*);/)[1]).replace("'", "").replace("'", "").split(".").join("")),
+        "threeDozes": Number((content('script')[8].children[0].data.match(/var doz3asisayisi = (.*);/)[1]).replace("'", "").replace("'", "").split(".").join(""))
     };
 }
 
@@ -39,8 +39,10 @@ async function sendMessage2Twitter(singleDose, twoDozes) {
         }
     }
 
-    message = message + "%0ASingleDose%20Percentage:%20%20" + singleDose;
-    message = message + "%0ATwoDoses%20Percentage:%20%20" + twoDozes;
+    message = message + "%0ASingle%20Dose%20Percentage:%20%20" + singleDose;
+    message = message + "%0ATwo%20Doses%20Percentage:%20%20" + twoDozes;
+    message = message + "%0AThree%20Doses%20Percentage:%20%20" + threeDozes;
+
     message = message + "%0APercentage%20of%20Effective%20Immunity:%20%20" + twoDozes + "%0A%23covid19%20%23covid";
 
     const opts = {
@@ -62,9 +64,9 @@ exports.handler = async function (event, context, callback) {
 
         const covidReport = getCovidReportHtmlContent(response.data);
         const calculateTotalSingleDozePercentage = calculateSingleDozePercentage(covidReport);
-        const calculateTotalTwoDozesPercentage = calculateTwoDozesPercentage(covidReport);
+        const calculateTotalThreeDozesPercentage = calculateTwoDozesPercentage(covidReport.threeDozes);
 
-        const message = await sendMessage2Twitter(calculateTotalSingleDozePercentage, calculateTotalTwoDozesPercentage);
+        const message = await sendMessage2Twitter(calculateTotalSingleDozePercentage, calculateTotalTwoDozesPercentage, calculateTotalThreeDozesPercentage);
         console.log(`daily covid computation success totalCasualtyPercentage: ${calculateTotalTwoDozesPercentage} ,message to twitter: ${message}`);
     } catch (err) {
         console.error(`error getting :(  ${err.name} ${err.message} ${err.stack}`);
